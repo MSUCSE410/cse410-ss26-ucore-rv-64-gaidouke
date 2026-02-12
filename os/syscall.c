@@ -39,6 +39,28 @@ uint64 sys_gettimeofday(TimeVal *val, int _tz)
 /*
 * LAB1: you may need to define sys_task_info here
 */
+int sys_task_info(struct TaskInfo *ti){
+	
+	struct proc *p = curr_proc(); // Get pointer to the current process
+
+    if (!p || !ti) // If pointer to process or pointer to task info is 0, return error
+        return -1;
+
+    ti->status = Running; // Status for current process must be running
+
+    // Copy syscall counts (from kernel process struct to TaskInfo)
+    for (int i = 0; i < MAX_SYSCALL_NUM; i++) {
+        ti->syscall_times[i] = p->syscall_times[i]; /*TODO: memcpy*/
+    }
+
+	uint64 cycle = get_cycle(); // Get current CPU cycle count
+    uint64 elapsed_cycles = cycle - p->start_time; // Total elapsed cycles since process creation
+    
+    // Calculate time in milliseconds
+    ti->time = (int)((elapsed_cycles * 1000) / CPU_FREQ);
+
+	return 0;
+}
 
 extern char trap_page[];
 
@@ -53,6 +75,11 @@ void syscall()
 	/*
 	* LAB1: you may need to update syscall counter for task info here
 	*/
+	struct proc *p = curr_proc(); // Pointer to currently running process
+	if (id < MAX_SYSCALL_NUM) { // Ensure syscall id is within valid range
+		p->syscall_times[id]++; // Increment counter
+	}
+
 	switch (id) {
 	case SYS_write:
 		ret = sys_write(args[0], (char *)args[1], args[2]);
@@ -69,6 +96,12 @@ void syscall()
 	/*
 	* LAB1: you may need to add SYS_taskinfo case here
 	*/
+	case SYS_task_info:
+		ret = sys_task_info((struct TaskInfo *)args[0]); // Call sys_task_info & pass buffer pointer
+		break;
+	case SYS_getpid: // Had errors related to this, so I added this case here
+		ret = p->pid;
+		break;
 	default:
 		ret = -1;
 		errorf("unknown syscall %d", id);

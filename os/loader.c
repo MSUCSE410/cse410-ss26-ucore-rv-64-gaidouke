@@ -1,6 +1,7 @@
 #include "loader.h"
 #include "defs.h"
 #include "trap.h"
+#include "timer.h"
 
 static uint64 app_num;
 static uint64 *app_info_ptr;
@@ -51,6 +52,7 @@ int run_all_app()
 		/*
 		* LAB1: you may need to initialize your new fields of proc here
 		*/
+		p->start_time = get_cycle(); // Get current CPU cycle count as the creation time
 	}
 	return 0;
 }

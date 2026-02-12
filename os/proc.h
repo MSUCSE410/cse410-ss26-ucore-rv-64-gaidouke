@@ -2,6 +2,7 @@
 #define PROC_H
 
 #include "types.h"
+#include "syscall_ids.h"
 
 #define NPROC (16)
 
@@ -38,11 +39,26 @@ struct proc {
 	/*
 	* LAB1: you may need to add some new fields here
 	*/
+	unsigned int syscall_times[MAX_SYSCALL_NUM]; // Counts number of times syscall invoked
+    uint64 first_run_time;     					 // Cycle count when first scheduled
+	uint64 start_time;							 // Cycle count when first created
 };
 
 /*
 * LAB1: you may need to define struct for TaskInfo here
 */
+typedef enum {
+	UnInit,
+	Ready,
+	Running,
+	Exited,
+} TaskStatus;
+
+struct TaskInfo {
+	TaskStatus status; // Process status
+	unsigned int syscall_times[MAX_SYSCALL_NUM]; // Number of times syscall invoked
+	int time; // Total process running time
+};
 
 struct proc *curr_proc();
 void exit(int);
