@@ -74,7 +74,7 @@ uint64 sys_mmap(uint64 start, uint64 len, int port, int flag, int fd){
 	if (len == 0)
         return 0;
 
-	// Start must be page-aligned (whole pages)
+	// Start must be page-aligned (whole pages.)
     if (start % PGSIZE != 0)
         return -1;
 
