@@ -4,9 +4,16 @@
 #include "riscv.h"
 #include "types.h"
 #include "queue.h"
+#include "syscall_ids.h"
 
 #define NPROC (512)
 #define FD_BUFFER_SIZE (16)
+
+/* Large constant used to compute each process's pass value
+   pass = BIG_STRIDE / priority, so higher priority provides 
+   smaller pass therefore scheduled more often
+*/
+#define BIG_STRIDE 65536
 
 struct file;
 
@@ -45,6 +52,41 @@ struct proc {
 	struct proc *parent; // Parent process
 	uint64 exit_code;
 	struct file *files[FD_BUFFER_SIZE];
+	/*
+	* LAB1: you may need to add some new fields here
+	*/
+	unsigned int syscall_times[MAX_SYSCALL_NUM]; // Number of times syscall invoked
+    uint64 first_run_time;     					 // Cycle count when first scheduled
+	uint64 start_time;
+
+
+	/* 
+	* stride:   virtual time consumed so far, starts at 0, grows by pass each slice
+	* pass:     BIG_STRIDE / priority — higher priority → smaller pass → runs more often
+	* priority: scheduling weight >= 2, default 16. Doubling priority halves pass,
+	*           so the process accumulates stride half as fast and runs twice as much.
+	*/
+	// Project 3 variables
+	uint64 stride;   // accumulated runtime (starts at 0)
+	uint64 pass;     // increment value (BigStride / priority)
+	uint64 priority; // >= 2, default = 16
+	
+};
+
+/*
+* LAB1: you may need to define struct for TaskInfo here
+*/
+typedef enum {
+	UnInit,
+	Ready,
+	Running,
+	Exited,
+} TaskStatus;
+
+struct TaskInfo {
+	TaskStatus status; // Process status
+	unsigned int syscall_times[MAX_SYSCALL_NUM]; // Number of times syscall invoked
+	int time; // Process running time
 };
 
 int cpuid();

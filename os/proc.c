@@ -32,6 +32,19 @@ void proc_init()
 		p->state = UNUSED;
 		p->kstack = (uint64)kstack[p - pool];
 		p->trapframe = (struct trapframe *)trapframe[p - pool];
+		/*
+		* LAB1: you may need to initialize your new fields of proc here
+		*/
+		memset(&p->syscall_times, 0, sizeof(p->syscall_times));
+		p->first_run_time = 0;
+		p->start_time = 0;
+
+		// Project 3 initialize stride scheduling fields for every pool entry.
+		// All processes start with equal priority (16) and stride (0) so the
+		// scheduler has a consistent baseline before any process runs.
+		p->priority = 16;
+		p->stride = 0;
+		p->pass = BIG_STRIDE / 16;
 	}
 	idle.kstack = (uint64)boot_stack_top;
 	idle.pid = IDLE_PID;
@@ -89,6 +102,12 @@ found:
 	memset((void *)p->trapframe, 0, TRAP_PAGE_SIZE);
 	p->context.ra = (uint64)usertrapret;
 	p->context.sp = p->kstack + KSTACK_SIZE;
+
+	// Project 3: Reset stride scheduling fields for every new process
+    p->priority = 16;
+    p->stride = 0;
+    p->pass = BIG_STRIDE / 16;
+
 	return p;
 }
 
@@ -122,6 +141,9 @@ void scheduler()
 		p->state = RUNNING;
 		current_proc = p;
 		swtch(&idle.context, &p->context);
+
+		// Project 3: record virtual time consumed; next fetch_task() picks min(stride)
+		p->stride += p->pass; // update stride
 	}
 }
 
