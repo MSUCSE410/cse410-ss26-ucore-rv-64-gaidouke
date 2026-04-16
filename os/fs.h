@@ -5,6 +5,10 @@
 // On-disk file system format.
 // Both the kernel and user programs use this header file.
 
+// Project 4
+#define STAT_FILE 0x100000
+#define STAT_DIR  0x040000
+
 #define NFILE 100 // open files per system
 #define NINODE 50 // maximum number of active i-nodes
 #define NDEV 10 // maximum major device number
@@ -44,10 +48,11 @@ struct superblock {
 // On-disk inode structure
 struct dinode {
 	short type; // File type
-	short pad[3];
+	short pad[2];
 	// LAB4: you can reduce size of pad array and add link count below,
 	//       or you can just regard a pad as link count.
 	//       But keep in mind that you'd better keep sizeof(dinode) unchanged
+	short nlink;  // Project 4: added hard link count
 	uint size; // Size of file (bytes)
 	uint addrs[NDIRECT + 1]; // Data block addresses
 };

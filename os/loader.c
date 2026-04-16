@@ -3,7 +3,7 @@
 #include "file.h"
 #include "trap.h"
 
-extern char INIT_PROC[];
+//extern const char INIT_PROC[];
 
 int bin_loader(struct inode *ip, struct proc *p)
 {
@@ -53,15 +53,15 @@ int load_init_app()
 	struct inode *ip;
 	struct proc *p = allocproc();
 	init_stdio(p);
-	if ((ip = namei(INIT_PROC)) == 0) {
+	if ((ip = namei(/*(char *)INIT_PROC)*/ "usershell")) == 0) { // Project 4
 		errorf("invalid init proc name\n");
 		return -1;
 	}
-	debugf("load init app %s", INIT_PROC);
+	debugf("load init app %s", /*INIT_PROC*/"usershell"); // Project 4
 	bin_loader(ip, p);
 	iput(ip);
 	char *argv[2];
-	argv[0] = INIT_PROC;
+	argv[0] = /*(char *)INIT_PROC*/ "usershell"; // Project 4
 	argv[1] = NULL;
 	p->trapframe->a0 = push_argv(p, argv);
 	add_task(p);
